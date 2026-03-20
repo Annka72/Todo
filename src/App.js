@@ -506,7 +506,6 @@ function LoginScreen() {
           <FeatherLogo />
           <h1 style={{ color: '#1A1210' }}>Tre musketerer</h1>
         </div>
-        <p className="subtitle" style={{ marginBottom: '1.5rem' }}>Dynamisk Helse — felles kommando</p>
         {sent ? (
           <div className="login-sent">
             Sjekk e-posten din! Vi har sendt en innloggingslenke til <strong>{email}</strong>.
@@ -665,7 +664,6 @@ export default function App() {
             <FeatherLogo />
             <h1>Tre musketerer</h1>
           </div>
-          <p className="subtitle">Dynamisk Helse — felles kommando</p>
         </div>
         <div className="header-right">
           <div className="user-info">
