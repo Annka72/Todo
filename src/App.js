@@ -139,19 +139,7 @@ function ClaudePanel({ task, onClose }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const pendingVoiceRef = useRef(null)
-
-  useEffect(() => {
-    if (pendingVoiceRef.current && !loading) {
-      const text = pendingVoiceRef.current
-      pendingVoiceRef.current = null
-      const userMsg = { role: 'user', content: text }
-      const newMessages = [...messages, userMsg]
-      setMessages(newMessages)
-      setInput('')
-      sendMessages(newMessages)
-    }
-  })
+  const messagesRef = useRef([])
 
   const docs = task.documents || []
   const docNames = docs.map(d => d.name).join(', ')
@@ -160,7 +148,9 @@ function ClaudePanel({ task, onClose }) {
     const intro = docs.length > 0
       ? `Hei! Jeg ser oppgaven «${task.text}» har ${docs.length} dokument(er): ${docs.map(d => d.name).join(', ')}. Jeg har lest disse og kan diskutere innholdet. Hva vil du vite?`
       : `Hei! Jeg er klar til å hjelpe med oppgaven «${task.text}». Hva vil du tenke igjennom?`
-    setMessages([{ role: 'assistant', content: intro }])
+    const initial = [{ role: 'assistant', content: intro }]
+    setMessages(initial)
+    messagesRef.current = initial
   }, [task.text, docNames])
 
   async function sendMessages(msgs) {
@@ -180,20 +170,33 @@ function ClaudePanel({ task, onClose }) {
       })
       const data = await res.json()
       const reply = data.content?.[0]?.text || 'Noe gikk galt.'
-      setMessages(prev => [...prev, { role: 'assistant', content: reply }])
+      setMessages(prev => {
+        const updated = [...prev, { role: 'assistant', content: reply }]
+        messagesRef.current = updated
+        return updated
+      })
     } catch {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Feil ved tilkobling til Claude.' }])
+      setMessages(prev => {
+        const updated = [...prev, { role: 'assistant', content: 'Feil ved tilkobling til Claude.' }]
+        messagesRef.current = updated
+        return updated
+      })
     }
     setLoading(false)
   }
 
-  async function send() {
-    if (!input.trim() || loading) return
-    const userMsg = { role: 'user', content: input }
-    const newMessages = [...messages, userMsg]
+  function sendText(text) {
+    const userMsg = { role: 'user', content: text }
+    const newMessages = [...messagesRef.current, userMsg]
     setMessages(newMessages)
+    messagesRef.current = newMessages
     setInput('')
     sendMessages(newMessages)
+  }
+
+  async function send() {
+    if (!input.trim() || loading) return
+    sendText(input)
   }
 
   return (
@@ -221,9 +224,11 @@ function ClaudePanel({ task, onClose }) {
           disabled={loading}
         />
         <MicButton autoSend onResult={(text, shouldSend) => {
-          const newVal = input ? input + ' ' + text : text
-          setInput(newVal)
-          if (shouldSend) pendingVoiceRef.current = newVal
+          if (shouldSend) {
+            sendText(text)
+          } else {
+            setInput(prev => prev ? prev + ' ' + text : text)
+          }
         }} />
         <button onClick={send} disabled={loading || !input.trim()}>Send</button>
       </div>
