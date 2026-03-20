@@ -269,7 +269,99 @@ function PrioritySelect({ value, onChange }) {
   )
 }
 
-function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, isDragging }) {
+function CommentSection({ taskId, userEmail, teamEmails }) {
+  const [comments, setComments] = useState([])
+  const [input, setInput] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [suggestions, setSuggestions] = useState([])
+
+  useEffect(() => {
+    async function load() {
+      const { data } = await supabase.from('comments').select('*').eq('task_id', taskId).order('created_at')
+      setComments(data || [])
+      // Mark as read
+      const unread = (data || []).filter(c => c.mentions?.includes(userEmail) && !c.read_by?.includes(userEmail))
+      for (const c of unread) {
+        await supabase.from('comments').update({ read_by: [...(c.read_by || []), userEmail] }).eq('id', c.id)
+      }
+    }
+    load()
+  }, [taskId, userEmail])
+
+  function handleInput(e) {
+    const val = e.target.value
+    setInput(val)
+    const match = val.match(/@(\S*)$/)
+    if (match) {
+      const query = match[1].toLowerCase()
+      const filtered = teamEmails.filter(em => em.toLowerCase().includes(query) && em !== userEmail)
+      setSuggestions(filtered)
+      setShowSuggestions(filtered.length > 0)
+    } else {
+      setShowSuggestions(false)
+    }
+  }
+
+  function selectMention(email) {
+    setInput(prev => prev.replace(/@(\S*)$/, `@${email} `))
+    setShowSuggestions(false)
+  }
+
+  async function addComment() {
+    if (!input.trim()) return
+    const mentioned = [...input.matchAll(/@([\w.@+-]+)/g)].map(m => m[1]).filter(e => teamEmails.includes(e))
+    await supabase.from('comments').insert({
+      task_id: taskId,
+      user_email: userEmail,
+      content: input.trim(),
+      mentions: mentioned,
+      read_by: [userEmail]
+    })
+    setInput('')
+    const { data } = await supabase.from('comments').select('*').eq('task_id', taskId).order('created_at')
+    setComments(data || [])
+  }
+
+  function renderContent(text) {
+    return text.split(/(@[\w.@+-]+)/g).map((part, i) =>
+      part.startsWith('@') ? <span key={i} style={{ color: '#C8563A', fontWeight: 500 }}>{part}</span> : part
+    )
+  }
+
+  return (
+    <div style={{ marginTop: 14 }}>
+      <div className="exp-section-label">Kommentarer</div>
+      {comments.length === 0 && <div className="empty-hint">Ingen kommentarer ennå.</div>}
+      {comments.map(c => (
+        <div key={c.id} className="comment-item">
+          <div className="comment-header">
+            <span className="comment-author">{c.user_email.split('@')[0]}</span>
+            <span className="comment-time">{new Date(c.created_at).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+          <div className="comment-text">{renderContent(c.content)}</div>
+        </div>
+      ))}
+      <div className="add-sub-row" style={{ position: 'relative' }}>
+        <input
+          value={input}
+          onChange={handleInput}
+          onKeyDown={e => e.key === 'Enter' && addComment()}
+          placeholder="Skriv kommentar... bruk @ for å nevne"
+        />
+        <button onClick={addComment}>Send</button>
+        {showSuggestions && (
+          <div className="mention-suggestions">
+            {suggestions.map(em => (
+              <div key={em} className="mention-option" onClick={() => selectMention(em)}>@{em}</div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, isDragging, userEmail, teamEmails }) {
   const [expanded, setExpanded] = useState(false)
   const [subInput, setSubInput] = useState('')
   const [showClaude, setShowClaude] = useState(false)
@@ -472,6 +564,8 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
               fontWeight: 500
             }}>{uploadStatus}</div>
           )}
+
+          <CommentSection taskId={task.id} userEmail={userEmail} teamEmails={teamEmails} />
         </div>
       )}
 
@@ -583,6 +677,8 @@ export default function App() {
   const [newCat, setNewCat] = useState('annet')
   const [newPri, setNewPri] = useState('medium')
   const [dragId, setDragId] = useState(null)
+  const [teamEmails, setTeamEmails] = useState([])
+  const [unreadMentions, setUnreadMentions] = useState(0)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -594,6 +690,32 @@ export default function App() {
     })
     return () => subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    async function loadTeam() {
+      const { data } = await supabase.from('comments').select('user_email')
+      const emails = [...new Set((data || []).map(c => c.user_email))]
+      if (session?.user?.email && !emails.includes(session.user.email)) {
+        emails.push(session.user.email)
+      }
+      setTeamEmails(emails)
+    }
+    if (session) loadTeam()
+  }, [session])
+
+  useEffect(() => {
+    async function checkMentions() {
+      if (!session?.user?.email) return
+      const { data } = await supabase.from('comments').select('id, read_by, mentions')
+      const unread = (data || []).filter(c =>
+        c.mentions?.includes(session.user.email) && !c.read_by?.includes(session.user.email)
+      )
+      setUnreadMentions(unread.length)
+    }
+    if (session) checkMentions()
+    const interval = setInterval(checkMentions, 15000)
+    return () => clearInterval(interval)
+  }, [session])
 
   const fetchTasks = useCallback(async () => {
     const { data: taskData } = await supabase.from('tasks').select('*').order('position')
@@ -672,6 +794,7 @@ export default function App() {
             <button className="icon-btn" onClick={() => supabase.auth.signOut()}>Logg ut</button>
           </div>
           <div className="live-badge">● Live</div>
+          {unreadMentions > 0 && <div className="mention-badge">@ {unreadMentions} ny(e) omtale(r)</div>}
         </div>
       </div>
 
@@ -726,6 +849,8 @@ export default function App() {
                   onDragStart={e => { setDragId(t.id); e.dataTransfer.effectAllowed = 'move' }}
                   onDragOver={e => e.preventDefault()}
                   onDrop={e => { e.preventDefault(); handleDrop(dragId, t.id) }}
+                  userEmail={userEmail}
+                  teamEmails={teamEmails}
                 />
               ))}
             </div>
