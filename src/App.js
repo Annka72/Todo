@@ -173,13 +173,19 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
     onUpdate()
   }
 
+  const [uploadError, setUploadError] = useState('')
+
   async function handleFileUpload(e) {
     const files = e.target.files
     if (!files) return
+    setUploadError('')
     for (const f of files) {
       const filePath = `${task.id}/${Date.now()}_${f.name}`
-      const { error: uploadError } = await supabase.storage.from('documents').upload(filePath, f)
-      if (uploadError) { console.error('Upload feil:', uploadError); continue }
+      const { error: storageError } = await supabase.storage.from('documents').upload(filePath, f)
+      if (storageError) {
+        setUploadError(`Feil ved opplasting av ${f.name}: ${storageError.message}`)
+        continue
+      }
       const { data: urlData } = supabase.storage.from('documents').getPublicUrl(filePath)
       await supabase.from('documents').insert({
         task_id: task.id,
@@ -262,6 +268,7 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
             <input type="file" multiple onChange={handleFileUpload} style={{ display: 'none' }} />
             Klikk for å laste opp dokument
           </label>
+          {uploadError && <div style={{ color: '#E24B4A', fontSize: 12, marginTop: 6 }}>{uploadError}</div>}
         </div>
       )}
 
