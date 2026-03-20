@@ -4,7 +4,7 @@ import './App.css'
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 
-function MicButton({ onResult, className }) {
+function MicButton({ onResult, autoSend, className }) {
   const [listening, setListening] = useState(false)
   const recRef = useRef(null)
 
@@ -24,7 +24,7 @@ function MicButton({ onResult, className }) {
     rec.continuous = false
     rec.onresult = (e) => {
       const text = e.results[0][0].transcript
-      onResult(text)
+      onResult(text, autoSend)
       setListening(false)
     }
     rec.onerror = () => setListening(false)
@@ -139,6 +139,19 @@ function ClaudePanel({ task, onClose }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const pendingVoiceRef = useRef(null)
+
+  useEffect(() => {
+    if (pendingVoiceRef.current && !loading) {
+      const text = pendingVoiceRef.current
+      pendingVoiceRef.current = null
+      const userMsg = { role: 'user', content: text }
+      const newMessages = [...messages, userMsg]
+      setMessages(newMessages)
+      setInput('')
+      sendMessages(newMessages)
+    }
+  })
 
   const docs = task.documents || []
   const docNames = docs.map(d => d.name).join(', ')
@@ -150,14 +163,8 @@ function ClaudePanel({ task, onClose }) {
     setMessages([{ role: 'assistant', content: intro }])
   }, [task.text, docNames])
 
-  async function send() {
-    if (!input.trim() || loading) return
-    const userMsg = { role: 'user', content: input }
-    const newMessages = [...messages, userMsg]
-    setMessages(newMessages)
-    setInput('')
+  async function sendMessages(msgs) {
     setLoading(true)
-
     try {
       const docUrls = docs.filter(d => d.url).map(d => ({ name: d.name, url: d.url }))
       const res = await fetch('/api/chat', {
@@ -167,7 +174,7 @@ function ClaudePanel({ task, onClose }) {
           model: 'claude-sonnet-4-20250514',
           max_tokens: 2000,
           system: `Du er en strategisk sparringspartner for Ann-Kristin og Henrik i Dynamisk Helse. De jobber med fire produkter: SkillAid+ (kompetanseplattform for helsearbeidere), Teknotassen (AI-assistent for velferdsteknologi), Veilederen (compliance-verktøy), og SkillAid Bygg (onboarding for helsebygg). De er i en aktiv investorfase (Drops Health-plattformen). Svar konsist og strategisk på norsk. Referer til dokumentinnhold når det er relevant.`,
-          messages: newMessages,
+          messages: msgs,
           documents: docUrls
         })
       })
@@ -178,6 +185,15 @@ function ClaudePanel({ task, onClose }) {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Feil ved tilkobling til Claude.' }])
     }
     setLoading(false)
+  }
+
+  async function send() {
+    if (!input.trim() || loading) return
+    const userMsg = { role: 'user', content: input }
+    const newMessages = [...messages, userMsg]
+    setMessages(newMessages)
+    setInput('')
+    sendMessages(newMessages)
   }
 
   return (
@@ -204,7 +220,11 @@ function ClaudePanel({ task, onClose }) {
           placeholder="Still et spørsmål..."
           disabled={loading}
         />
-        <MicButton onResult={text => setInput(prev => prev ? prev + ' ' + text : text)} />
+        <MicButton autoSend onResult={(text, shouldSend) => {
+          const newVal = input ? input + ' ' + text : text
+          setInput(newVal)
+          if (shouldSend) pendingVoiceRef.current = newVal
+        }} />
         <button onClick={send} disabled={loading || !input.trim()}>Send</button>
       </div>
     </div>
