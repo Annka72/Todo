@@ -139,19 +139,35 @@ function ClaudePanel({ task, onClose }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [historyLoaded, setHistoryLoaded] = useState(false)
   const messagesRef = useRef([])
 
   const docs = task.documents || []
   const docNames = docs.map(d => d.name).join(', ')
 
   useEffect(() => {
-    const intro = docs.length > 0
-      ? `Hei! Jeg ser oppgaven «${task.text}» har ${docs.length} dokument(er): ${docs.map(d => d.name).join(', ')}. Jeg har lest disse og kan diskutere innholdet. Hva vil du vite?`
-      : `Hei! Jeg er klar til å hjelpe med oppgaven «${task.text}». Hva vil du tenke igjennom?`
-    const initial = [{ role: 'assistant', content: intro }]
-    setMessages(initial)
-    messagesRef.current = initial
-  }, [task.text, docNames])
+    async function loadHistory() {
+      const { data } = await supabase
+        .from('chat_messages')
+        .select('role, content')
+        .eq('task_id', task.id)
+        .order('created_at')
+      if (data && data.length > 0) {
+        setMessages(data)
+        messagesRef.current = data
+      } else {
+        const intro = docs.length > 0
+          ? `Hei! Jeg ser oppgaven «${task.text}» har ${docs.length} dokument(er): ${docs.map(d => d.name).join(', ')}. Jeg har lest disse og kan diskutere innholdet. Hva vil du vite?`
+          : `Hei! Jeg er klar til å hjelpe med oppgaven «${task.text}». Hva vil du tenke igjennom?`
+        const initial = [{ role: 'assistant', content: intro }]
+        setMessages(initial)
+        messagesRef.current = initial
+        await supabase.from('chat_messages').insert({ task_id: task.id, role: 'assistant', content: intro })
+      }
+      setHistoryLoaded(true)
+    }
+    loadHistory()
+  }, [task.id, task.text, docNames])
 
   async function sendMessages(msgs) {
     setLoading(true)
@@ -170,6 +186,7 @@ function ClaudePanel({ task, onClose }) {
       })
       const data = await res.json()
       const reply = data.content?.[0]?.text || 'Noe gikk galt.'
+      await supabase.from('chat_messages').insert({ task_id: task.id, role: 'assistant', content: reply })
       setMessages(prev => {
         const updated = [...prev, { role: 'assistant', content: reply }]
         messagesRef.current = updated
@@ -185,7 +202,8 @@ function ClaudePanel({ task, onClose }) {
     setLoading(false)
   }
 
-  function sendText(text) {
+  async function sendText(text) {
+    await supabase.from('chat_messages').insert({ task_id: task.id, role: 'user', content: text })
     const userMsg = { role: 'user', content: text }
     const newMessages = [...messagesRef.current, userMsg]
     setMessages(newMessages)
@@ -206,6 +224,7 @@ function ClaudePanel({ task, onClose }) {
         <button className="close-btn" onClick={onClose}>✕</button>
       </div>
       <div className="claude-task-label">{task.text}</div>
+      {!historyLoaded && <div style={{ padding: '12px 13px', fontSize: 12, color: '#6D5D4E' }}>Henter chat-historikk...</div>}
       <div className="claude-messages">
         {messages.map((m, i) => (
           <div key={i} className={`msg msg-${m.role}`}>
