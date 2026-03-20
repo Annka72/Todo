@@ -51,12 +51,15 @@ function ClaudePanel({ task, onClose }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const docs = task.documents || []
+  const docNames = docs.map(d => d.name).join(', ')
+
   useEffect(() => {
-    setMessages([{
-      role: 'assistant',
-      content: `Hei! Jeg er klar til å hjelpe med oppgaven «${task.text}». Hva vil du tenke igjennom?`
-    }])
-  }, [task.text])
+    const intro = docs.length > 0
+      ? `Hei! Jeg ser oppgaven «${task.text}» har ${docs.length} dokument(er): ${docs.map(d => d.name).join(', ')}. Jeg har lest disse og kan diskutere innholdet. Hva vil du vite?`
+      : `Hei! Jeg er klar til å hjelpe med oppgaven «${task.text}». Hva vil du tenke igjennom?`
+    setMessages([{ role: 'assistant', content: intro }])
+  }, [task.text, docNames])
 
   async function send() {
     if (!input.trim() || loading) return
@@ -67,14 +70,16 @@ function ClaudePanel({ task, onClose }) {
     setLoading(true)
 
     try {
+      const docUrls = docs.filter(d => d.url).map(d => ({ name: d.name, url: d.url }))
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          system: `Du er en strategisk sparringspartner for Ann-Kristin og Henrik i Dynamisk Helse. De jobber med fire produkter: SkillAid+ (kompetanseplattform for helsearbeidere), Teknotassen (AI-assistent for velferdsteknologi), Veilederen (compliance-verktøy), og SkillAid Bygg (onboarding for helsebygg). De er i en aktiv investorfase (Drops Health-plattformen). Svar konsist og strategisk på norsk.`,
-          messages: newMessages
+          max_tokens: 2000,
+          system: `Du er en strategisk sparringspartner for Ann-Kristin og Henrik i Dynamisk Helse. De jobber med fire produkter: SkillAid+ (kompetanseplattform for helsearbeidere), Teknotassen (AI-assistent for velferdsteknologi), Veilederen (compliance-verktøy), og SkillAid Bygg (onboarding for helsebygg). De er i en aktiv investorfase (Drops Health-plattformen). Svar konsist og strategisk på norsk. Referer til dokumentinnhold når det er relevant.`,
+          messages: newMessages,
+          documents: docUrls
         })
       })
       const data = await res.json()
@@ -172,10 +177,15 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
     const files = e.target.files
     if (!files) return
     for (const f of files) {
+      const filePath = `${task.id}/${Date.now()}_${f.name}`
+      const { error: uploadError } = await supabase.storage.from('documents').upload(filePath, f)
+      if (uploadError) { console.error('Upload feil:', uploadError); continue }
+      const { data: urlData } = supabase.storage.from('documents').getPublicUrl(filePath)
       await supabase.from('documents').insert({
         task_id: task.id,
         name: f.name,
-        size: Math.round(f.size / 1024) + 'KB'
+        size: Math.round(f.size / 1024) + 'KB',
+        url: urlData.publicUrl
       })
     }
     onUpdate()
