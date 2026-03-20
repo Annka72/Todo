@@ -380,6 +380,20 @@ h1 {
 }
 .typing { color: var(--hint); font-style: italic; }
 
+.download-msg-btn {
+  font-family: inherit;
+  font-size: 11px;
+  padding: 2px 8px;
+  border: 0.5px solid var(--border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  margin-top: 4px;
+  align-self: flex-start;
+}
+.download-msg-btn:hover { color: var(--accent); border-color: var(--accent); }
+
 .claude-input-row {
   display: flex;
   gap: 6px;

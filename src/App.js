@@ -230,6 +230,17 @@ function ClaudePanel({ task, onClose }) {
           <div key={i} className={`msg msg-${m.role}`}>
             <div className="msg-label">{m.role === 'user' ? 'Deg' : 'Claude'}</div>
             <div className="msg-content">{m.content}</div>
+            {m.role === 'assistant' && m.content.length > 100 && (
+              <button className="download-msg-btn" onClick={() => {
+                const blob = new Blob([m.content], { type: 'text/plain;charset=utf-8' })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `claude-svar-${i}.txt`
+                a.click()
+                URL.revokeObjectURL(url)
+              }}>Last ned som .txt</button>
+            )}
           </div>
         ))}
         {loading && <div className="msg msg-assistant"><div className="msg-label">Claude</div><div className="msg-content typing">...</div></div>}
