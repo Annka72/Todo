@@ -479,11 +479,10 @@ function LoginScreen() {
   return (
     <div className="login-screen">
       <div className="login-card">
-        <div className="app-title-row" style={{ justifyContent: 'center', marginBottom: 4 }}>
+        <div className="app-title-row" style={{ justifyContent: 'center', marginBottom: 12 }}>
           <FeatherLogo />
-          <h1>Tre musketerer</h1>
+          <h1>De tre musketerer</h1>
         </div>
-        <p className="subtitle">Dynamisk Helse — felles kommando</p>
         {sent ? (
           <div className="login-sent">
             Sjekk e-posten din! Vi har sendt en innloggingslenke til <strong>{email}</strong>.
@@ -640,9 +639,8 @@ export default function App() {
         <div>
           <div className="app-title-row">
             <FeatherLogo />
-            <h1>Tre musketerer</h1>
+            <h1>De tre musketerer</h1>
           </div>
-          <p className="subtitle">Dynamisk Helse — felles kommando</p>
         </div>
         <div className="header-right">
           <div className="user-info">
