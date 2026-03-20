@@ -5,11 +5,11 @@ import './App.css'
 const CATS = ['investor', 'produkt', 'drift', 'marked', 'annet']
 const CAT_LABELS = { investor: 'Investor', produkt: 'Produkt', drift: 'Drift', marked: 'Marked', annet: 'Annet' }
 const CAT_COLORS = {
-  investor: { bg: '#E6F1FB', text: '#0C447C' },
-  produkt:  { bg: '#E1F5EE', text: '#085041' },
-  drift:    { bg: '#FAEEDA', text: '#633806' },
-  marked:   { bg: '#FBEAF0', text: '#72243E' },
-  annet:    { bg: '#F1EFE8', text: '#444441' },
+  investor: { bg: 'rgba(200,86,58,0.2)', text: '#E8896E' },
+  produkt:  { bg: 'rgba(29,158,117,0.2)', text: '#5DCAA5' },
+  drift:    { bg: 'rgba(186,117,23,0.2)', text: '#EF9F27' },
+  marked:   { bg: 'rgba(180,155,210,0.2)', text: '#B49BD2' },
+  annet:    { bg: 'rgba(255,255,255,0.08)', text: '#8B7355' },
 }
 
 const PRIORITIES = ['high', 'medium', 'low']
@@ -17,6 +17,24 @@ const PRI_CONFIG = {
   high:   { symbol: '🔴', label: 'Høy' },
   medium: { symbol: '🟡', label: 'Medium' },
   low:    { symbol: '🟢', label: 'Lav' },
+}
+
+function FeatherLogo() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+      <path d="M16 28C16 28 8 20 8 12C8 8 10 4 16 3" stroke="#C8563A" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M16 28C16 28 24 20 24 12C24 8 22 4 16 3" stroke="#8B3A28" strokeWidth="1" strokeLinecap="round"/>
+      <path d="M12 8L16 12" stroke="#8B3A28" strokeWidth="0.8" opacity="0.3" strokeLinecap="round"/>
+      <path d="M10 12L16 16" stroke="#8B3A28" strokeWidth="0.8" opacity="0.4" strokeLinecap="round"/>
+      <path d="M9 16L16 20" stroke="#8B3A28" strokeWidth="0.8" opacity="0.5" strokeLinecap="round"/>
+      <path d="M10 20L16 24" stroke="#8B3A28" strokeWidth="0.8" opacity="0.6" strokeLinecap="round"/>
+      <path d="M20 8L16 12" stroke="#8B3A28" strokeWidth="0.8" opacity="0.3" strokeLinecap="round"/>
+      <path d="M22 12L16 16" stroke="#8B3A28" strokeWidth="0.8" opacity="0.4" strokeLinecap="round"/>
+      <path d="M23 16L16 20" stroke="#8B3A28" strokeWidth="0.8" opacity="0.5" strokeLinecap="round"/>
+      <path d="M22 20L16 24" stroke="#8B3A28" strokeWidth="0.8" opacity="0.6" strokeLinecap="round"/>
+      <path d="M16 28L16 26" stroke="#C8563A" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  )
 }
 
 function Tag({ cat }) {
@@ -368,8 +386,11 @@ function LoginScreen() {
   return (
     <div className="login-screen">
       <div className="login-card">
-        <h1>Dynamisk Helse</h1>
-        <p className="subtitle">Logg inn for å se oppgavelisten</p>
+        <div className="app-title-row" style={{ justifyContent: 'center', marginBottom: 4 }}>
+          <FeatherLogo />
+          <h1>Tre musketerer</h1>
+        </div>
+        <p className="subtitle">Dynamisk Helse — felles kommando</p>
         {sent ? (
           <div className="login-sent">
             Sjekk e-posten din! Vi har sendt en innloggingslenke til <strong>{email}</strong>.
@@ -524,8 +545,11 @@ export default function App() {
     <div className="app">
       <div className="app-header">
         <div>
-          <h1>Dynamisk Helse</h1>
-          <p className="subtitle">Ann-Kristin &amp; Henrik — delt oppgaveliste</p>
+          <div className="app-title-row">
+            <FeatherLogo />
+            <h1>Tre musketerer</h1>
+          </div>
+          <p className="subtitle">Dynamisk Helse — felles kommando</p>
         </div>
         <div className="header-right">
           <div className="user-info">
@@ -591,6 +615,10 @@ export default function App() {
           )
         })
       )}
+
+      <div className="app-footer">
+        <p>En for alle — alle for en</p>
+      </div>
     </div>
   )
 }
