@@ -377,6 +377,114 @@ h1 { font-size: 22px; font-weight: 500; letter-spacing: -0.3px; }
 
 .loading { font-size: 13px; color: var(--hint); padding: 20px 0; text-align: center; }
 
+.login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+}
+
+.login-card {
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2.5rem 2rem;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+}
+
+.login-card h1 { margin-bottom: 4px; }
+.login-card .subtitle { margin-bottom: 1.5rem; }
+
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-card input {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 14px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+.login-card input:focus { border-color: var(--teal); }
+
+.login-sent {
+  font-size: 14px;
+  color: var(--teal);
+  padding: 12px;
+  background: var(--teal-light);
+  border-radius: var(--radius);
+  line-height: 1.5;
+}
+
+.login-error {
+  font-size: 12px;
+  color: #E24B4A;
+  margin-top: 4px;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-email {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.invite-panel {
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.invite-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 13px;
+  font-size: 13px;
+  font-weight: 500;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.invite-form {
+  display: flex;
+  gap: 8px;
+  padding: 12px 13px;
+}
+
+.invite-form input {
+  flex: 1;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+.invite-form input:focus { border-color: var(--teal); }
+
 .drag-handle {
   cursor: grab;
   color: var(--hint);

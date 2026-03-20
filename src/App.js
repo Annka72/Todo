@@ -260,13 +260,118 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
   )
 }
 
+function LoginScreen() {
+  const [email, setEmail] = useState('')
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleLogin(e) {
+    e.preventDefault()
+    setError('')
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin }
+    })
+    if (error) {
+      setError(error.message)
+    } else {
+      setSent(true)
+    }
+  }
+
+  return (
+    <div className="login-screen">
+      <div className="login-card">
+        <h1>Dynamisk Helse</h1>
+        <p className="subtitle">Logg inn for å se oppgavelisten</p>
+        {sent ? (
+          <div className="login-sent">
+            Sjekk e-posten din! Vi har sendt en innloggingslenke til <strong>{email}</strong>.
+          </div>
+        ) : (
+          <form onSubmit={handleLogin}>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="Din e-postadresse..."
+              required
+            />
+            <button type="submit" className="add-btn">Send innloggingslenke</button>
+            {error && <div className="login-error">{error}</div>}
+          </form>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function InvitePanel({ onClose }) {
+  const [email, setEmail] = useState('')
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleInvite(e) {
+    e.preventDefault()
+    setError('')
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin }
+    })
+    if (error) {
+      setError(error.message)
+    } else {
+      setSent(true)
+      setTimeout(() => { setSent(false); setEmail(''); onClose() }, 3000)
+    }
+  }
+
+  return (
+    <div className="invite-panel">
+      <div className="invite-header">
+        <span>Inviter medlem</span>
+        <button className="close-btn" onClick={onClose}>✕</button>
+      </div>
+      {sent ? (
+        <div className="login-sent" style={{ margin: '12px' }}>Invitasjon sendt!</div>
+      ) : (
+        <form onSubmit={handleInvite} className="invite-form">
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="E-postadresse..."
+            required
+          />
+          <button type="submit" className="add-btn">Send invitasjon</button>
+          {error && <div className="login-error">{error}</div>}
+        </form>
+      )}
+    </div>
+  )
+}
+
 export default function App() {
+  const [session, setSession] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [showInvite, setShowInvite] = useState(false)
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [newText, setNewText] = useState('')
   const [newCat, setNewCat] = useState('annet')
   const [newPri, setNewPri] = useState('medium')
   const [dragId, setDragId] = useState(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setAuthLoading(false)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   const fetchTasks = useCallback(async () => {
     const { data: taskData } = await supabase.from('tasks').select('*').order('position')
@@ -324,6 +429,11 @@ export default function App() {
   const done = tasks.filter(t => t.done).length
   const pct = total ? Math.round(done / total * 100) : 0
 
+  if (authLoading) return <div className="loading" style={{ marginTop: '40vh' }}>Laster...</div>
+  if (!session) return <LoginScreen />
+
+  const userEmail = session.user.email
+
   return (
     <div className="app">
       <div className="app-header">
@@ -331,8 +441,17 @@ export default function App() {
           <h1>Dynamisk Helse</h1>
           <p className="subtitle">Ann-Kristin &amp; Henrik — delt oppgaveliste</p>
         </div>
-        <div className="live-badge">● Live</div>
+        <div className="header-right">
+          <div className="user-info">
+            <span className="user-email">{userEmail}</span>
+            <button className="icon-btn" onClick={() => setShowInvite(v => !v)}>+ Inviter</button>
+            <button className="icon-btn" onClick={() => supabase.auth.signOut()}>Logg ut</button>
+          </div>
+          <div className="live-badge">● Live</div>
+        </div>
       </div>
+
+      {showInvite && <InvitePanel onClose={() => setShowInvite(false)} />}
 
       <div className="stats-row">
         {[['Totalt', total], ['Ferdig', done], ['Gjenstår', total - done], ['Fremgang', pct + '%']].map(([l, v]) => (
