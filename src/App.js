@@ -12,6 +12,13 @@ const CAT_COLORS = {
   annet:    { bg: '#F1EFE8', text: '#444441' },
 }
 
+const PRIORITIES = ['high', 'medium', 'low']
+const PRI_CONFIG = {
+  high:   { symbol: '🔴', label: 'Høy' },
+  medium: { symbol: '🟡', label: 'Medium' },
+  low:    { symbol: '🟢', label: 'Lav' },
+}
+
 function Tag({ cat }) {
   const c = CAT_COLORS[cat] || CAT_COLORS.annet
   return (
@@ -109,10 +116,30 @@ function ClaudePanel({ task, onClose }) {
   )
 }
 
-function TaskCard({ task, onUpdate, onDelete }) {
+function PrioritySelect({ value, onChange }) {
+  return (
+    <select
+      className="priority-select"
+      value={value || 'medium'}
+      onChange={e => onChange(e.target.value)}
+      title="Prioritet"
+    >
+      {PRIORITIES.map(p => (
+        <option key={p} value={p}>{PRI_CONFIG[p].symbol} {PRI_CONFIG[p].label}</option>
+      ))}
+    </select>
+  )
+}
+
+function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, isDragging }) {
   const [expanded, setExpanded] = useState(false)
   const [subInput, setSubInput] = useState('')
   const [showClaude, setShowClaude] = useState(false)
+
+  async function changePriority(priority) {
+    await supabase.from('tasks').update({ priority }).eq('id', task.id)
+    onUpdate()
+  }
 
   async function toggleTask() {
     const { error } = await supabase.from('tasks').update({ done: !task.done }).eq('id', task.id)
@@ -164,14 +191,22 @@ function TaskCard({ task, onUpdate, onDelete }) {
   const subDone = subs.filter(s => s.done).length
 
   return (
-    <div className={`task-card${task.done ? ' done' : ''}`}>
+    <div
+      className={`task-card${task.done ? ' done' : ''}${isDragging ? ' dragging' : ''}`}
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    >
       <div className="task-main">
+        <span className="drag-handle" title="Dra for å sortere">⠿</span>
         <input type="checkbox" checked={task.done} onChange={toggleTask} />
         <div className="task-body">
           <span className="task-text">{task.text}</span>
           {subs.length > 0 && <span className="sub-count">{subDone}/{subs.length}</span>}
           {docs.length > 0 && <span className="sub-count">{docs.length} dok.</span>}
         </div>
+        <PrioritySelect value={task.priority} onChange={changePriority} />
         <Tag cat={task.category} />
         <div className="task-actions">
           <button className={`icon-btn${expanded ? ' active' : ''}`} onClick={() => setExpanded(v => !v)}>
@@ -230,6 +265,8 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [newText, setNewText] = useState('')
   const [newCat, setNewCat] = useState('annet')
+  const [newPri, setNewPri] = useState('medium')
+  const [dragId, setDragId] = useState(null)
 
   const fetchTasks = useCallback(async () => {
     const { data: taskData } = await supabase.from('tasks').select('*').order('position')
@@ -260,8 +297,26 @@ export default function App() {
 
   async function addTask() {
     if (!newText.trim()) return
-    await supabase.from('tasks').insert({ text: newText.trim(), category: newCat, position: tasks.length })
+    await supabase.from('tasks').insert({ text: newText.trim(), category: newCat, priority: newPri, position: tasks.length })
     setNewText('')
+    fetchTasks()
+  }
+
+  async function handleDrop(draggedId, targetId) {
+    if (draggedId === targetId) return
+    const oldIndex = tasks.findIndex(t => t.id === draggedId)
+    const newIndex = tasks.findIndex(t => t.id === targetId)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const reordered = [...tasks]
+    const [moved] = reordered.splice(oldIndex, 1)
+    reordered.splice(newIndex, 0, moved)
+
+    const updates = reordered.map((t, i) =>
+      supabase.from('tasks').update({ position: i }).eq('id', t.id)
+    )
+    await Promise.all(updates)
+    setDragId(null)
     fetchTasks()
   }
 
@@ -300,6 +355,9 @@ export default function App() {
         <select value={newCat} onChange={e => setNewCat(e.target.value)}>
           {CATS.map(c => <option key={c} value={c}>{CAT_LABELS[c]}</option>)}
         </select>
+        <select value={newPri} onChange={e => setNewPri(e.target.value)} className="priority-add-select">
+          {PRIORITIES.map(p => <option key={p} value={p}>{PRI_CONFIG[p].symbol} {PRI_CONFIG[p].label}</option>)}
+        </select>
         <button className="add-btn" onClick={addTask}>+ Legg til</button>
       </div>
 
@@ -313,7 +371,16 @@ export default function App() {
             <div key={cat} className="section">
               <div className="section-label">{CAT_LABELS[cat]}</div>
               {catTasks.map(t => (
-                <TaskCard key={t.id} task={t} onUpdate={fetchTasks} onDelete={fetchTasks} />
+                <TaskCard
+                  key={t.id}
+                  task={t}
+                  onUpdate={fetchTasks}
+                  onDelete={fetchTasks}
+                  isDragging={dragId === t.id}
+                  onDragStart={e => { setDragId(t.id); e.dataTransfer.effectAllowed = 'move' }}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={e => { e.preventDefault(); handleDrop(dragId, t.id) }}
+                />
               ))}
             </div>
           )

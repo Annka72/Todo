@@ -376,3 +376,36 @@ h1 { font-size: 22px; font-weight: 500; letter-spacing: -0.3px; }
 .claude-input-row button:disabled { opacity: 0.5; cursor: default; }
 
 .loading { font-size: 13px; color: var(--hint); padding: 20px 0; text-align: center; }
+
+.drag-handle {
+  cursor: grab;
+  color: var(--hint);
+  font-size: 14px;
+  user-select: none;
+  flex-shrink: 0;
+  padding: 0 2px;
+  margin-top: 1px;
+}
+.drag-handle:active { cursor: grabbing; }
+
+.task-card.dragging {
+  opacity: 0.4;
+  border: 1px dashed var(--teal);
+}
+
+.task-card[draggable="true"]:hover .drag-handle { color: var(--muted); }
+
+.priority-select, .priority-add-select {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 0.5px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  outline: none;
+  flex-shrink: 0;
+}
+.priority-select:focus, .priority-add-select:focus { border-color: var(--teal); }
+.priority-add-select { width: 110px; }
