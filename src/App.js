@@ -49,11 +49,11 @@ function MicButton({ onResult, autoSend, className }) {
 const CATS = ['investor', 'produkt', 'drift', 'marked', 'annet']
 const CAT_LABELS = { investor: 'Investor', produkt: 'Produkt', drift: 'Drift', marked: 'Marked', annet: 'Annet' }
 const CAT_COLORS = {
-  investor: { bg: 'rgba(200,86,58,0.18)', text: '#E8896E' },
-  produkt:  { bg: 'rgba(29,158,117,0.18)', text: '#5DCAA5' },
-  drift:    { bg: 'rgba(186,117,23,0.18)', text: '#EF9F27' },
-  marked:   { bg: 'rgba(180,155,210,0.18)', text: '#B49BD2' },
-  annet:    { bg: 'rgba(255,255,255,0.08)', text: '#A08E7A' },
+  investor: { bg: '#FDE8E3', text: '#9B3D25' },
+  produkt:  { bg: '#E1F5EE', text: '#085041' },
+  drift:    { bg: '#FAEEDA', text: '#633806' },
+  marked:   { bg: '#F0EBF8', text: '#6B3E8E' },
+  annet:    { bg: '#F1EFE8', text: '#5C4A38' },
 }
 
 const PRIORITIES = ['high', 'medium', 'low']
@@ -65,45 +65,33 @@ const PRI_CONFIG = {
 
 function FeatherLogo() {
   return (
-    <svg width="42" height="42" viewBox="0 0 48 48" fill="none">
-      {/* Hovedkurve venstre */}
-      <path d="M24 44C24 44 10 34 7 20C5.5 13 8 6 16 3" stroke="#C8563A" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+    <svg width="44" height="52" viewBox="0 0 44 52" fill="none">
       {/* Hovedkurve høyre */}
-      <path d="M24 44C24 44 38 34 41 20C42.5 13 40 6 32 3" stroke="#C8563A" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-      {/* Rygg/midtstamme */}
-      <path d="M24 4C24 4 23 14 23.5 24C23.8 30 24 38 24 44" stroke="#8B3A28" strokeWidth="1" strokeLinecap="round" fill="none"/>
-      {/* Venstre ribber - bustete, ujevne */}
-      <path d="M9 7L18 10" stroke="#8B3A28" strokeWidth="0.8" opacity="0.3" strokeLinecap="round"/>
-      <path d="M7 11L17 13" stroke="#8B3A28" strokeWidth="0.8" opacity="0.35" strokeLinecap="round"/>
-      <path d="M6 15L19 16" stroke="#8B3A28" strokeWidth="0.8" opacity="0.4" strokeLinecap="round"/>
-      <path d="M6.5 19L20 19.5" stroke="#8B3A28" strokeWidth="0.8" opacity="0.45" strokeLinecap="round"/>
-      <path d="M7 23L21 22" stroke="#8B3A28" strokeWidth="0.8" opacity="0.5" strokeLinecap="round"/>
-      <path d="M8.5 27L22 25" stroke="#8B3A28" strokeWidth="0.8" opacity="0.55" strokeLinecap="round"/>
-      <path d="M10 30.5L22.5 28" stroke="#8B3A28" strokeWidth="0.8" opacity="0.6" strokeLinecap="round"/>
-      <path d="M12 34L23 31" stroke="#8B3A28" strokeWidth="0.8" opacity="0.65" strokeLinecap="round"/>
-      <path d="M15 37L23.5 34.5" stroke="#8B3A28" strokeWidth="0.8" opacity="0.7" strokeLinecap="round"/>
-      {/* Høyre ribber - bustete, ujevne */}
-      <path d="M39 7L30 10" stroke="#8B3A28" strokeWidth="0.8" opacity="0.3" strokeLinecap="round"/>
-      <path d="M41 11L31 13" stroke="#8B3A28" strokeWidth="0.8" opacity="0.35" strokeLinecap="round"/>
-      <path d="M42 15L29 16" stroke="#8B3A28" strokeWidth="0.8" opacity="0.4" strokeLinecap="round"/>
-      <path d="M41.5 19L28 19.5" stroke="#8B3A28" strokeWidth="0.8" opacity="0.45" strokeLinecap="round"/>
-      <path d="M41 23L27 22" stroke="#8B3A28" strokeWidth="0.8" opacity="0.5" strokeLinecap="round"/>
-      <path d="M39.5 27L26 25" stroke="#8B3A28" strokeWidth="0.8" opacity="0.55" strokeLinecap="round"/>
-      <path d="M38 30.5L25.5 28" stroke="#8B3A28" strokeWidth="0.8" opacity="0.6" strokeLinecap="round"/>
-      <path d="M36 34L25 31" stroke="#8B3A28" strokeWidth="0.8" opacity="0.65" strokeLinecap="round"/>
-      <path d="M33 37L24.5 34.5" stroke="#8B3A28" strokeWidth="0.8" opacity="0.7" strokeLinecap="round"/>
-      {/* Ekstra bust-tråder venstre */}
-      <path d="M8 9L14 8" stroke="#C8563A" strokeWidth="0.6" opacity="0.25" strokeLinecap="round"/>
-      <path d="M5.5 17L12 15.5" stroke="#C8563A" strokeWidth="0.6" opacity="0.3" strokeLinecap="round"/>
-      <path d="M6 21L13 20" stroke="#C8563A" strokeWidth="0.6" opacity="0.25" strokeLinecap="round"/>
-      <path d="M9 25L15 23.5" stroke="#C8563A" strokeWidth="0.6" opacity="0.3" strokeLinecap="round"/>
-      {/* Ekstra bust-tråder høyre */}
-      <path d="M40 9L34 8" stroke="#C8563A" strokeWidth="0.6" opacity="0.25" strokeLinecap="round"/>
-      <path d="M42.5 17L36 15.5" stroke="#C8563A" strokeWidth="0.6" opacity="0.3" strokeLinecap="round"/>
-      <path d="M42 21L35 20" stroke="#C8563A" strokeWidth="0.6" opacity="0.25" strokeLinecap="round"/>
-      <path d="M39 25L33 23.5" stroke="#C8563A" strokeWidth="0.6" opacity="0.3" strokeLinecap="round"/>
+      <path d="M22 3 C26 6, 36 10, 38 18 C40 26, 34 34, 28 40 C24 44, 20 47, 17 49" stroke="#C8563A" strokeWidth="1.6" strokeLinecap="round" fill="none"/>
+      {/* Ryggkurve venstre */}
+      <path d="M22 3 C18 7, 10 14, 9 22 C8 30, 12 38, 17 49" stroke="#8B3A28" strokeWidth="1.1" strokeLinecap="round" fill="none"/>
       {/* Spiss */}
-      <path d="M24 44L24 41" stroke="#C8563A" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M17 49 L19 43" stroke="#C8563A" strokeWidth="1.3" strokeLinecap="round"/>
+      {/* Høyre ribber */}
+      <path d="M26 7 C30 9,36 12,36 17" stroke="#C8563A" strokeWidth="0.9" opacity="0.8" strokeLinecap="round" fill="none"/>
+      <path d="M28 11 C33 14,37 18,36 23" stroke="#C8563A" strokeWidth="0.8" opacity="0.65" strokeLinecap="round" fill="none"/>
+      <path d="M29 16 C34 19,37 23,35 28" stroke="#C8563A" strokeWidth="0.8" opacity="0.55" strokeLinecap="round" fill="none"/>
+      <path d="M28 21 C32 24,34 28,31 33" stroke="#C8563A" strokeWidth="0.7" opacity="0.45" strokeLinecap="round" fill="none"/>
+      <path d="M25 27 C28 30,29 34,27 38" stroke="#C8563A" strokeWidth="0.7" opacity="0.35" strokeLinecap="round" fill="none"/>
+      <path d="M22 33 C24 36,24 39,22 42" stroke="#C8563A" strokeWidth="0.6" opacity="0.3" strokeLinecap="round" fill="none"/>
+      {/* Venstre ribber */}
+      <path d="M18 7 C14 9,10 13,10 18" stroke="#8B3A28" strokeWidth="0.8" opacity="0.7" strokeLinecap="round" fill="none"/>
+      <path d="M16 12 C12 15,9 19,10 24" stroke="#8B3A28" strokeWidth="0.7" opacity="0.55" strokeLinecap="round" fill="none"/>
+      <path d="M15 18 C11 21,9 25,11 30" stroke="#8B3A28" strokeWidth="0.7" opacity="0.45" strokeLinecap="round" fill="none"/>
+      <path d="M15 24 C12 27,11 31,13 35" stroke="#8B3A28" strokeWidth="0.6" opacity="0.35" strokeLinecap="round" fill="none"/>
+      <path d="M16 30 C14 33,14 37,15 40" stroke="#8B3A28" strokeWidth="0.6" opacity="0.3" strokeLinecap="round" fill="none"/>
+      {/* Bustehår toppen høyre */}
+      <path d="M25 6 C27 4,30 5,29 7" stroke="#C8563A" strokeWidth="0.7" opacity="0.5" strokeLinecap="round" fill="none"/>
+      <path d="M30 10 C33 8,36 9,35 12" stroke="#C8563A" strokeWidth="0.6" opacity="0.4" strokeLinecap="round" fill="none"/>
+      <path d="M32 16 C35 14,38 16,37 19" stroke="#C8563A" strokeWidth="0.6" opacity="0.35" strokeLinecap="round" fill="none"/>
+      {/* Bustehår toppen venstre */}
+      <path d="M17 8 C15 6,12 6,12 9" stroke="#8B3A28" strokeWidth="0.6" opacity="0.4" strokeLinecap="round" fill="none"/>
+      <path d="M12 14 C9 12,7 14,8 17" stroke="#8B3A28" strokeWidth="0.6" opacity="0.35" strokeLinecap="round" fill="none"/>
     </svg>
   )
 }
@@ -514,10 +502,11 @@ function LoginScreen() {
   return (
     <div className="login-screen">
       <div className="login-card">
-        <div className="app-title-row" style={{ justifyContent: 'center', marginBottom: 12 }}>
+        <div className="app-title-row" style={{ justifyContent: 'center', marginBottom: 4 }}>
           <FeatherLogo />
-          <h1>De tre musketerer</h1>
+          <h1 style={{ color: '#1A1210' }}>Tre musketerer</h1>
         </div>
+        <p className="subtitle" style={{ marginBottom: '1.5rem' }}>Dynamisk Helse — felles kommando</p>
         {sent ? (
           <div className="login-sent">
             Sjekk e-posten din! Vi har sendt en innloggingslenke til <strong>{email}</strong>.
@@ -674,8 +663,9 @@ export default function App() {
         <div>
           <div className="app-title-row">
             <FeatherLogo />
-            <h1>De tre musketerer</h1>
+            <h1>Tre musketerer</h1>
           </div>
+          <p className="subtitle">Dynamisk Helse — felles kommando</p>
         </div>
         <div className="header-right">
           <div className="user-info">
@@ -686,6 +676,8 @@ export default function App() {
           <div className="live-badge">● Live</div>
         </div>
       </div>
+
+      <div className="app-content">
 
       {showInvite && <InvitePanel onClose={() => setShowInvite(false)} />}
 
@@ -746,6 +738,8 @@ export default function App() {
       <div className="app-footer">
         <p>En for alle — alle for en</p>
       </div>
+
+      </div>{/* end app-content */}
     </div>
   )
 }
