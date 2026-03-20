@@ -1,6 +1,50 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from './lib/supabase'
 import './App.css'
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+
+function MicButton({ onResult, className }) {
+  const [listening, setListening] = useState(false)
+  const recRef = useRef(null)
+
+  function toggle() {
+    if (listening) {
+      recRef.current?.stop()
+      setListening(false)
+      return
+    }
+    if (!SpeechRecognition) {
+      alert('Nettleseren din støtter ikke tale-til-tekst.')
+      return
+    }
+    const rec = new SpeechRecognition()
+    rec.lang = 'nb-NO'
+    rec.interimResults = false
+    rec.continuous = false
+    rec.onresult = (e) => {
+      const text = e.results[0][0].transcript
+      onResult(text)
+      setListening(false)
+    }
+    rec.onerror = () => setListening(false)
+    rec.onend = () => setListening(false)
+    recRef.current = rec
+    rec.start()
+    setListening(true)
+  }
+
+  return (
+    <button
+      type="button"
+      className={`mic-btn ${listening ? 'mic-active' : ''} ${className || ''}`}
+      onClick={toggle}
+      title={listening ? 'Stopp opptak' : 'Tale til tekst'}
+    >
+      {listening ? '⏹' : '🎤'}
+    </button>
+  )
+}
 
 const CATS = ['investor', 'produkt', 'drift', 'marked', 'annet']
 const CAT_LABELS = { investor: 'Investor', produkt: 'Produkt', drift: 'Drift', marked: 'Marked', annet: 'Annet' }
@@ -160,6 +204,7 @@ function ClaudePanel({ task, onClose }) {
           placeholder="Still et spørsmål..."
           disabled={loading}
         />
+        <MicButton onResult={text => setInput(prev => prev ? prev + ' ' + text : text)} />
         <button onClick={send} disabled={loading || !input.trim()}>Send</button>
       </div>
     </div>
@@ -347,6 +392,7 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
               onKeyDown={e => e.key === 'Enter' && addSub()}
               placeholder="Legg til underpunkt..."
             />
+            <MicButton onResult={text => setSubInput(prev => prev ? prev + ' ' + text : text)} />
             <button onClick={addSub}>+ Legg til</button>
           </div>
 
@@ -608,6 +654,7 @@ export default function App() {
           onKeyDown={e => e.key === 'Enter' && addTask()}
           placeholder="Ny oppgave..."
         />
+        <MicButton onResult={text => setNewText(prev => prev ? prev + ' ' + text : text)} />
         <select value={newCat} onChange={e => setNewCat(e.target.value)}>
           {CATS.map(c => <option key={c} value={c}>{CAT_LABELS[c]}</option>)}
         </select>
