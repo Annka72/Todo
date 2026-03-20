@@ -310,7 +310,10 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
-      <div className="task-main">
+      <div className="task-main" onClick={(e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.closest('select') || e.target.closest('.drag-handle')) return
+        setExpanded(v => !v)
+      }} style={{ cursor: 'pointer' }}>
         <span className="drag-handle" title="Dra for å sortere">⠿</span>
         <input type="checkbox" checked={task.done} onChange={toggleTask} />
         <div className="task-body">
@@ -321,9 +324,6 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
         <PrioritySelect value={task.priority} onChange={changePriority} />
         <Tag cat={task.category} />
         <div className="task-actions">
-          <button className={`icon-btn${expanded ? ' active' : ''}`} onClick={() => setExpanded(v => !v)}>
-            {expanded ? 'Lukk' : 'Detaljer'}
-          </button>
           <button className="icon-btn ask" onClick={() => setShowClaude(v => !v)}>Spør ↗</button>
           <button className="del-x" onClick={deleteTask}>✕</button>
         </div>
