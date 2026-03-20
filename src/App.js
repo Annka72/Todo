@@ -5,11 +5,11 @@ import './App.css'
 const CATS = ['investor', 'produkt', 'drift', 'marked', 'annet']
 const CAT_LABELS = { investor: 'Investor', produkt: 'Produkt', drift: 'Drift', marked: 'Marked', annet: 'Annet' }
 const CAT_COLORS = {
-  investor: { bg: 'rgba(200,86,58,0.2)', text: '#E8896E' },
-  produkt:  { bg: 'rgba(29,158,117,0.2)', text: '#5DCAA5' },
-  drift:    { bg: 'rgba(186,117,23,0.2)', text: '#EF9F27' },
-  marked:   { bg: 'rgba(180,155,210,0.2)', text: '#B49BD2' },
-  annet:    { bg: 'rgba(255,255,255,0.08)', text: '#8B7355' },
+  investor: { bg: 'rgba(200,86,58,0.1)', text: '#B04A30' },
+  produkt:  { bg: 'rgba(29,158,117,0.1)', text: '#18845E' },
+  drift:    { bg: 'rgba(186,117,23,0.1)', text: '#A06A10' },
+  marked:   { bg: 'rgba(140,115,180,0.12)', text: '#7B5FA0' },
+  annet:    { bg: 'rgba(139,115,85,0.08)', text: '#8B7355' },
 }
 
 const PRIORITIES = ['high', 'medium', 'low']
