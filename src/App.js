@@ -173,28 +173,79 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
     onUpdate()
   }
 
-  const [uploadError, setUploadError] = useState('')
+  const [uploadStatus, setUploadStatus] = useState('')
+  const [uploading, setUploading] = useState(false)
 
   async function handleFileUpload(e) {
     const files = e.target.files
-    if (!files) return
-    setUploadError('')
+    if (!files || files.length === 0) return
+    setUploadStatus('')
+    setUploading(true)
+    let success = 0
+    let failed = 0
     for (const f of files) {
+      try {
+        setUploadStatus(`Laster opp ${f.name}...`)
+        const filePath = `${task.id}/${Date.now()}_${f.name}`
+        const { error: storageError } = await supabase.storage.from('documents').upload(filePath, f)
+        if (storageError) {
+          setUploadStatus(`Feil: ${storageError.message}`)
+          failed++
+          continue
+        }
+        const { data: urlData } = supabase.storage.from('documents').getPublicUrl(filePath)
+        const { error: dbError } = await supabase.from('documents').insert({
+          task_id: task.id,
+          name: f.name,
+          size: Math.round(f.size / 1024) + 'KB',
+          url: urlData.publicUrl
+        })
+        if (dbError) {
+          setUploadStatus(`DB-feil: ${dbError.message}`)
+          failed++
+        } else {
+          success++
+        }
+      } catch (err) {
+        setUploadStatus(`Uventet feil: ${err.message}`)
+        failed++
+      }
+    }
+    setUploading(false)
+    if (failed > 0 && success === 0) {
+      setUploadStatus(`Opplasting feilet. Sjekk Storage-policyer i Supabase.`)
+    } else if (failed > 0) {
+      setUploadStatus(`${success} lastet opp, ${failed} feilet.`)
+    } else {
+      setUploadStatus(`${success} dokument(er) lagret i Storage!`)
+      setTimeout(() => setUploadStatus(''), 3000)
+    }
+    onUpdate()
+  }
+
+  async function reuploadDoc(doc) {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.onchange = async (e) => {
+      const f = e.target.files[0]
+      if (!f) return
+      setUploadStatus(`Laster opp ${f.name} til Storage...`)
+      setUploading(true)
       const filePath = `${task.id}/${Date.now()}_${f.name}`
       const { error: storageError } = await supabase.storage.from('documents').upload(filePath, f)
       if (storageError) {
-        setUploadError(`Feil ved opplasting av ${f.name}: ${storageError.message}`)
-        continue
+        setUploadStatus(`Feil: ${storageError.message}`)
+        setUploading(false)
+        return
       }
       const { data: urlData } = supabase.storage.from('documents').getPublicUrl(filePath)
-      await supabase.from('documents').insert({
-        task_id: task.id,
-        name: f.name,
-        size: Math.round(f.size / 1024) + 'KB',
-        url: urlData.publicUrl
-      })
+      await supabase.from('documents').update({ url: urlData.publicUrl }).eq('id', doc.id)
+      setUploadStatus('Lagret i Storage!')
+      setUploading(false)
+      setTimeout(() => setUploadStatus(''), 3000)
+      onUpdate()
     }
-    onUpdate()
+    input.click()
   }
 
   async function deleteDoc(docId) {
@@ -261,14 +312,32 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
               <FileIcon ext={fileExt(d.name)} />
               <span className="doc-name">{d.name}</span>
               <span className="doc-size">{d.size}</span>
+              {d.url ? (
+                <span style={{ color: '#1D9E75', fontSize: 11, flexShrink: 0 }}>Lagret</span>
+              ) : (
+                <button
+                  className="icon-btn"
+                  style={{ fontSize: 11, color: '#E24B4A', borderColor: '#E24B4A' }}
+                  onClick={() => reuploadDoc(d)}
+                >
+                  Last opp fil
+                </button>
+              )}
               <button className="del-x" onClick={() => deleteDoc(d.id)}>✕</button>
             </div>
           ))}
           <label className="file-upload-area">
             <input type="file" multiple onChange={handleFileUpload} style={{ display: 'none' }} />
-            Klikk for å laste opp dokument
+            {uploading ? 'Laster opp...' : 'Klikk for å laste opp dokument'}
           </label>
-          {uploadError && <div style={{ color: '#E24B4A', fontSize: 12, marginTop: 6 }}>{uploadError}</div>}
+          {uploadStatus && (
+            <div style={{
+              color: uploadStatus.includes('Feil') || uploadStatus.includes('feilet') ? '#E24B4A' : '#1D9E75',
+              fontSize: 12,
+              marginTop: 6,
+              fontWeight: 500
+            }}>{uploadStatus}</div>
+          )}
         </div>
       )}
 
