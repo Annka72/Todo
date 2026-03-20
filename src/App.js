@@ -5,11 +5,11 @@ import './App.css'
 const CATS = ['investor', 'produkt', 'drift', 'marked', 'annet']
 const CAT_LABELS = { investor: 'Investor', produkt: 'Produkt', drift: 'Drift', marked: 'Marked', annet: 'Annet' }
 const CAT_COLORS = {
-  investor: { bg: 'rgba(200,86,58,0.1)', text: '#B04A30' },
-  produkt:  { bg: 'rgba(29,158,117,0.1)', text: '#18845E' },
-  drift:    { bg: 'rgba(186,117,23,0.1)', text: '#A06A10' },
-  marked:   { bg: 'rgba(140,115,180,0.12)', text: '#7B5FA0' },
-  annet:    { bg: 'rgba(139,115,85,0.08)', text: '#8B7355' },
+  investor: { bg: 'rgba(200,86,58,0.18)', text: '#E8896E' },
+  produkt:  { bg: 'rgba(29,158,117,0.18)', text: '#5DCAA5' },
+  drift:    { bg: 'rgba(186,117,23,0.18)', text: '#EF9F27' },
+  marked:   { bg: 'rgba(180,155,210,0.18)', text: '#B49BD2' },
+  annet:    { bg: 'rgba(255,255,255,0.08)', text: '#A08E7A' },
 }
 
 const PRIORITIES = ['high', 'medium', 'low']
@@ -21,18 +21,45 @@ const PRI_CONFIG = {
 
 function FeatherLogo() {
   return (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-      <path d="M16 28C16 28 8 20 8 12C8 8 10 4 16 3" stroke="#C8563A" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M16 28C16 28 24 20 24 12C24 8 22 4 16 3" stroke="#8B3A28" strokeWidth="1" strokeLinecap="round"/>
-      <path d="M12 8L16 12" stroke="#8B3A28" strokeWidth="0.8" opacity="0.3" strokeLinecap="round"/>
-      <path d="M10 12L16 16" stroke="#8B3A28" strokeWidth="0.8" opacity="0.4" strokeLinecap="round"/>
-      <path d="M9 16L16 20" stroke="#8B3A28" strokeWidth="0.8" opacity="0.5" strokeLinecap="round"/>
-      <path d="M10 20L16 24" stroke="#8B3A28" strokeWidth="0.8" opacity="0.6" strokeLinecap="round"/>
-      <path d="M20 8L16 12" stroke="#8B3A28" strokeWidth="0.8" opacity="0.3" strokeLinecap="round"/>
-      <path d="M22 12L16 16" stroke="#8B3A28" strokeWidth="0.8" opacity="0.4" strokeLinecap="round"/>
-      <path d="M23 16L16 20" stroke="#8B3A28" strokeWidth="0.8" opacity="0.5" strokeLinecap="round"/>
-      <path d="M22 20L16 24" stroke="#8B3A28" strokeWidth="0.8" opacity="0.6" strokeLinecap="round"/>
-      <path d="M16 28L16 26" stroke="#C8563A" strokeWidth="1.5" strokeLinecap="round"/>
+    <svg width="42" height="42" viewBox="0 0 48 48" fill="none">
+      {/* Hovedkurve venstre */}
+      <path d="M24 44C24 44 10 34 7 20C5.5 13 8 6 16 3" stroke="#C8563A" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      {/* Hovedkurve høyre */}
+      <path d="M24 44C24 44 38 34 41 20C42.5 13 40 6 32 3" stroke="#C8563A" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      {/* Rygg/midtstamme */}
+      <path d="M24 4C24 4 23 14 23.5 24C23.8 30 24 38 24 44" stroke="#8B3A28" strokeWidth="1" strokeLinecap="round" fill="none"/>
+      {/* Venstre ribber - bustete, ujevne */}
+      <path d="M9 7L18 10" stroke="#8B3A28" strokeWidth="0.8" opacity="0.3" strokeLinecap="round"/>
+      <path d="M7 11L17 13" stroke="#8B3A28" strokeWidth="0.8" opacity="0.35" strokeLinecap="round"/>
+      <path d="M6 15L19 16" stroke="#8B3A28" strokeWidth="0.8" opacity="0.4" strokeLinecap="round"/>
+      <path d="M6.5 19L20 19.5" stroke="#8B3A28" strokeWidth="0.8" opacity="0.45" strokeLinecap="round"/>
+      <path d="M7 23L21 22" stroke="#8B3A28" strokeWidth="0.8" opacity="0.5" strokeLinecap="round"/>
+      <path d="M8.5 27L22 25" stroke="#8B3A28" strokeWidth="0.8" opacity="0.55" strokeLinecap="round"/>
+      <path d="M10 30.5L22.5 28" stroke="#8B3A28" strokeWidth="0.8" opacity="0.6" strokeLinecap="round"/>
+      <path d="M12 34L23 31" stroke="#8B3A28" strokeWidth="0.8" opacity="0.65" strokeLinecap="round"/>
+      <path d="M15 37L23.5 34.5" stroke="#8B3A28" strokeWidth="0.8" opacity="0.7" strokeLinecap="round"/>
+      {/* Høyre ribber - bustete, ujevne */}
+      <path d="M39 7L30 10" stroke="#8B3A28" strokeWidth="0.8" opacity="0.3" strokeLinecap="round"/>
+      <path d="M41 11L31 13" stroke="#8B3A28" strokeWidth="0.8" opacity="0.35" strokeLinecap="round"/>
+      <path d="M42 15L29 16" stroke="#8B3A28" strokeWidth="0.8" opacity="0.4" strokeLinecap="round"/>
+      <path d="M41.5 19L28 19.5" stroke="#8B3A28" strokeWidth="0.8" opacity="0.45" strokeLinecap="round"/>
+      <path d="M41 23L27 22" stroke="#8B3A28" strokeWidth="0.8" opacity="0.5" strokeLinecap="round"/>
+      <path d="M39.5 27L26 25" stroke="#8B3A28" strokeWidth="0.8" opacity="0.55" strokeLinecap="round"/>
+      <path d="M38 30.5L25.5 28" stroke="#8B3A28" strokeWidth="0.8" opacity="0.6" strokeLinecap="round"/>
+      <path d="M36 34L25 31" stroke="#8B3A28" strokeWidth="0.8" opacity="0.65" strokeLinecap="round"/>
+      <path d="M33 37L24.5 34.5" stroke="#8B3A28" strokeWidth="0.8" opacity="0.7" strokeLinecap="round"/>
+      {/* Ekstra bust-tråder venstre */}
+      <path d="M8 9L14 8" stroke="#C8563A" strokeWidth="0.6" opacity="0.25" strokeLinecap="round"/>
+      <path d="M5.5 17L12 15.5" stroke="#C8563A" strokeWidth="0.6" opacity="0.3" strokeLinecap="round"/>
+      <path d="M6 21L13 20" stroke="#C8563A" strokeWidth="0.6" opacity="0.25" strokeLinecap="round"/>
+      <path d="M9 25L15 23.5" stroke="#C8563A" strokeWidth="0.6" opacity="0.3" strokeLinecap="round"/>
+      {/* Ekstra bust-tråder høyre */}
+      <path d="M40 9L34 8" stroke="#C8563A" strokeWidth="0.6" opacity="0.25" strokeLinecap="round"/>
+      <path d="M42.5 17L36 15.5" stroke="#C8563A" strokeWidth="0.6" opacity="0.3" strokeLinecap="round"/>
+      <path d="M42 21L35 20" stroke="#C8563A" strokeWidth="0.6" opacity="0.25" strokeLinecap="round"/>
+      <path d="M39 25L33 23.5" stroke="#C8563A" strokeWidth="0.6" opacity="0.3" strokeLinecap="round"/>
+      {/* Spiss */}
+      <path d="M24 44L24 41" stroke="#C8563A" strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
   )
 }

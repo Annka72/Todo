@@ -5,15 +5,15 @@
 :root {
   --accent: #C8563A;
   --accent-dark: #8B3A28;
-  --accent-light: rgba(200,86,58,0.12);
-  --bg: #F5F0EB;
-  --card: #FFFFFF;
-  --border: rgba(139,115,85,0.15);
-  --text: #3D2E23;
-  --muted: #8B7355;
-  --hint: #B8A99A;
-  --input-bg: rgba(139,115,85,0.06);
-  --input-border: rgba(139,115,85,0.18);
+  --accent-light: rgba(200,86,58,0.15);
+  --bg: #3E2F28;
+  --card: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.10);
+  --text: #EDE4D8;
+  --muted: #A08E7A;
+  --hint: #6D5D4E;
+  --input-bg: rgba(255,255,255,0.07);
+  --input-border: rgba(255,255,255,0.14);
   --radius: 10px;
 }
 
@@ -295,7 +295,7 @@ h1 {
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  background: rgba(139,115,85,0.04);
+  background: rgba(255,255,255,0.03);
   border-radius: 6px;
   margin-bottom: 5px;
   font-size: 13px;
@@ -315,12 +315,12 @@ h1 {
   color: var(--hint);
   transition: background 0.15s;
 }
-.file-upload-area:hover { background: rgba(139,115,85,0.05); color: var(--muted); }
+.file-upload-area:hover { background: rgba(255,255,255,0.04); color: var(--muted); }
 
 /* Claude panel */
 .claude-panel {
   border-top: 0.5px solid var(--border);
-  background: rgba(139,115,85,0.03);
+  background: rgba(255,255,255,0.03);
 }
 
 .claude-header {
@@ -541,7 +541,7 @@ h1 {
 
 /* Footer */
 .app-footer {
-  border-top: 0.5px solid rgba(139,115,85,0.12);
+  border-top: 0.5px solid rgba(255,255,255,0.08);
   margin-top: 2.5rem;
   padding-top: 1.25rem;
   text-align: center;
