@@ -311,6 +311,7 @@ function CommentSection({ taskId, taskName, userEmail, teamEmails }) {
   const [input, setInput] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [suggestions, setSuggestions] = useState([])
+  const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -378,15 +379,35 @@ function CommentSection({ taskId, taskName, userEmail, teamEmails }) {
     )
   }
 
+  async function deleteComment(id) {
+    await supabase.from('comments').delete().eq('id', id)
+    const { data } = await supabase.from('comments').select('*').eq('task_id', taskId).order('created_at')
+    setComments(data || [])
+  }
+
+  const visibleComments = showAll ? comments : comments.slice(-1)
+  const hiddenCount = comments.length - 1
+
   return (
     <div style={{ marginTop: 14 }}>
-      <div className="exp-section-label">Kommentarer</div>
+      <div className="exp-section-label">Kommentarer {comments.length > 0 && <span style={{ opacity: 0.6 }}>({comments.length})</span>}</div>
       {comments.length === 0 && <div className="empty-hint">Ingen kommentarer ennå.</div>}
-      {comments.map(c => (
+      {!showAll && hiddenCount > 0 && (
+        <button className="show-more-btn" onClick={() => setShowAll(true)}>
+          Vis {hiddenCount} tidligere kommentar{hiddenCount > 1 ? 'er' : ''}
+        </button>
+      )}
+      {showAll && comments.length > 1 && (
+        <button className="show-more-btn" onClick={() => setShowAll(false)}>Skjul kommentarer</button>
+      )}
+      {visibleComments.map(c => (
         <div key={c.id} className="comment-item">
           <div className="comment-header">
             <span className="comment-author">{c.user_email.split('@')[0]}</span>
-            <span className="comment-time">{new Date(c.created_at).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className="comment-time">{new Date(c.created_at).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+              <button className="del-x" onClick={() => deleteComment(c.id)}>✕</button>
+            </div>
           </div>
           <div className="comment-text">{renderContent(c.content)}</div>
         </div>
