@@ -225,15 +225,46 @@ function ClaudePanel({ task, onClose }) {
             <div className="msg-label">{m.role === 'user' ? 'Deg' : 'Claude'}</div>
             <div className="msg-content">{m.content}</div>
             {m.role === 'assistant' && m.content.length > 100 && (
-              <button className="download-msg-btn" onClick={() => {
-                const blob = new Blob([m.content], { type: 'text/plain;charset=utf-8' })
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement('a')
-                a.href = url
-                a.download = `claude-svar-${i}.txt`
-                a.click()
-                URL.revokeObjectURL(url)
-              }}>Last ned som .txt</button>
+              <div className="download-btns">
+                <button className="download-msg-btn" onClick={() => {
+                  const blob = new Blob([m.content], { type: 'text/plain;charset=utf-8' })
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = `claude-svar-${i}.txt`
+                  a.click()
+                  URL.revokeObjectURL(url)
+                }}>Last ned .txt</button>
+                <button className="download-msg-btn" onClick={() => {
+                  const formatted = m.content
+                    .replace(/\n/g, '<br/>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/^### (.*?)(<br\/>)/gm, '<h3>$1</h3>')
+                    .replace(/^## (.*?)(<br\/>)/gm, '<h2>$1</h2>')
+                    .replace(/^# (.*?)(<br\/>)/gm, '<h1>$1</h1>')
+                    .replace(/- (.*?)(<br\/>)/g, '<li>$1</li>')
+                  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${task.text}</title>
+                    <style>
+                      body { font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; color: #1A1210; line-height: 1.7; font-size: 14px; }
+                      h1, h2, h3 { color: #2C1F1A; margin-top: 1.2em; }
+                      h1 { font-size: 22px; border-bottom: 2px solid #C8563A; padding-bottom: 8px; }
+                      h2 { font-size: 18px; }
+                      h3 { font-size: 15px; }
+                      li { margin-left: 20px; margin-bottom: 4px; }
+                      strong { color: #2C1F1A; }
+                      .header { color: #8B7355; font-size: 12px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+                      .footer { color: #B8A090; font-size: 11px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px; font-style: italic; }
+                    </style></head><body>
+                    <div class="header">Tre musketerer — ${task.text}</div>
+                    ${formatted}
+                    <div class="footer">En for alle — alle for en</div>
+                    <script>window.onload = function() { window.print() }</script>
+                  </body></html>`
+                  const w = window.open('', '_blank')
+                  w.document.write(html)
+                  w.document.close()
+                }}>Last ned PDF</button>
+              </div>
             )}
           </div>
         ))}

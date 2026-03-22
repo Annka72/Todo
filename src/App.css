@@ -396,6 +396,13 @@ h1 {
 }
 .typing { color: var(--hint); font-style: italic; }
 
+.download-btns {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  align-self: flex-start;
+}
+
 .download-msg-btn {
   font-family: inherit;
   font-size: 11px;
@@ -405,8 +412,6 @@ h1 {
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  margin-top: 4px;
-  align-self: flex-start;
 }
 .download-msg-btn:hover { color: var(--accent); border-color: var(--accent); }
 
