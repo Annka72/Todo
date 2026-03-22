@@ -58,9 +58,9 @@ const CAT_COLORS = {
 
 const PRIORITIES = ['high', 'medium', 'low']
 const PRI_CONFIG = {
-  high:   { symbol: '🔴', label: 'Høy' },
-  medium: { symbol: '🟡', label: 'Medium' },
-  low:    { symbol: '🟢', label: 'Lav' },
+  high:   { symbol: '🔥', label: 'Høy' },
+  medium: { symbol: '⚡', label: 'Medium' },
+  low:    { symbol: '🌿', label: 'Lav' },
 }
 
 function FeatherLogo() {
@@ -898,12 +898,18 @@ export default function App() {
           placeholder="Ny oppgave..."
         />
         <MicButton onResult={text => setNewText(prev => prev ? prev + ' ' + text : text)} />
-        <select value={newCat} onChange={e => setNewCat(e.target.value)}>
-          {CATS.map(c => <option key={c} value={c}>{CAT_LABELS[c]}</option>)}
-        </select>
-        <select value={newPri} onChange={e => setNewPri(e.target.value)} className="priority-add-select">
-          {PRIORITIES.map(p => <option key={p} value={p}>{PRI_CONFIG[p].symbol} {PRI_CONFIG[p].label}</option>)}
-        </select>
+        <div className="select-wrapper">
+          <label className="select-label">Kategori</label>
+          <select value={newCat} onChange={e => setNewCat(e.target.value)}>
+            {CATS.map(c => <option key={c} value={c}>{CAT_LABELS[c]}</option>)}
+          </select>
+        </div>
+        <div className="select-wrapper">
+          <label className="select-label">Hastegrad</label>
+          <select value={newPri} onChange={e => setNewPri(e.target.value)} className="priority-add-select">
+            {PRIORITIES.map(p => <option key={p} value={p}>{PRI_CONFIG[p].symbol} {PRI_CONFIG[p].label}</option>)}
+          </select>
+        </div>
         <button className="add-btn" onClick={addTask}>+ Legg til</button>
       </div>
 
