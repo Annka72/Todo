@@ -1091,7 +1091,7 @@ export default function App() {
         <button className={`view-tab${view === 'calendar' ? ' active' : ''}`} onClick={() => setView('calendar')}>📅 Kalender</button>
       </div>
 
-      {isAdmin && <div className="add-row">
+      <div className="add-row">
         <input
           value={newText}
           onChange={e => setNewText(e.target.value)}
@@ -1116,7 +1116,7 @@ export default function App() {
           <input type="date" className="date-input" value={newDue} onChange={e => setNewDue(e.target.value)} />
         </div>
         <button className="add-btn" onClick={addTask}>+ Legg til</button>
-      </div>}
+      </div>
 
       {view === 'calendar' && <CalendarView tasks={visibleTasks} />}
 
