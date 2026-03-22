@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         'api-key': process.env.BREVO_API_KEY
       },
       body: JSON.stringify({
-        sender: { name: 'Tre musketerer', email: 'noreply@dh-todo-navy.vercel.app' },
+        sender: { name: 'Tre musketerer', email: 'akjohansen@dynamiskhelse.no' },
         to: [{ email: to }],
         subject: `${fromName} nevnte deg i "${taskName}"`,
         htmlContent: `
