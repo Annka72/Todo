@@ -63,6 +63,85 @@ const PRI_CONFIG = {
   low:    { symbol: '🌿', label: 'Lav' },
 }
 
+function getDueStatus(dueDate) {
+  if (!dueDate) return null
+  const today = new Date()
+  today.setHours(0,0,0,0)
+  const due = new Date(dueDate)
+  due.setHours(0,0,0,0)
+  const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24))
+  if (diff < 0) return { label: `${Math.abs(diff)}d forsinket`, color: '#E24B4A', urgent: true }
+  if (diff === 0) return { label: 'I dag', color: '#C8563A', urgent: true }
+  if (diff === 1) return { label: 'I morgen', color: '#D4880F', urgent: false }
+  if (diff <= 3) return { label: `${diff} dager`, color: '#D4880F', urgent: false }
+  if (diff <= 7) return { label: `${diff} dager`, color: '#8B7355', urgent: false }
+  return { label: due.toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' }), color: '#8B7355', urgent: false }
+}
+
+function DueBadge({ dueDate }) {
+  const status = getDueStatus(dueDate)
+  if (!status) return null
+  return (
+    <span className={`due-badge${status.urgent ? ' due-urgent' : ''}`} style={{ color: status.color, borderColor: status.color }}>
+      📅 {status.label}
+    </span>
+  )
+}
+
+function CalendarView({ tasks }) {
+  const [currentMonth, setCurrentMonth] = useState(new Date())
+
+  const year = currentMonth.getFullYear()
+  const month = currentMonth.getMonth()
+  const firstDay = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const startDay = firstDay === 0 ? 6 : firstDay - 1
+
+  const days = []
+  for (let i = 0; i < startDay; i++) days.push(null)
+  for (let d = 1; d <= daysInMonth; d++) days.push(d)
+
+  const today = new Date()
+  const isToday = (d) => d && today.getFullYear() === year && today.getMonth() === month && today.getDate() === d
+
+  function tasksForDay(d) {
+    if (!d) return []
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    return tasks.filter(t => t.due_date === dateStr && !t.done)
+  }
+
+  const monthName = currentMonth.toLocaleDateString('nb-NO', { month: 'long', year: 'numeric' })
+
+  return (
+    <div className="calendar-view">
+      <div className="calendar-header">
+        <button className="icon-btn" onClick={() => setCurrentMonth(new Date(year, month - 1))}>◀</button>
+        <span className="calendar-month">{monthName.charAt(0).toUpperCase() + monthName.slice(1)}</span>
+        <button className="icon-btn" onClick={() => setCurrentMonth(new Date(year, month + 1))}>▶</button>
+      </div>
+      <div className="calendar-weekdays">
+        {['Ma', 'Ti', 'On', 'To', 'Fr', 'Lø', 'Sø'].map(d => <div key={d} className="cal-weekday">{d}</div>)}
+      </div>
+      <div className="calendar-grid">
+        {days.map((d, i) => {
+          const dayTasks = tasksForDay(d)
+          return (
+            <div key={i} className={`cal-day${d ? '' : ' cal-empty'}${isToday(d) ? ' cal-today' : ''}${dayTasks.length > 0 ? ' cal-has-tasks' : ''}`}>
+              {d && <span className="cal-day-num">{d}</span>}
+              {dayTasks.slice(0, 2).map(t => (
+                <div key={t.id} className="cal-task" style={{ borderLeftColor: CAT_COLORS[t.category]?.text || '#8B7355' }}>
+                  {PRI_CONFIG[t.priority]?.symbol || ''} {t.text.slice(0, 18)}{t.text.length > 18 ? '…' : ''}
+                </div>
+              ))}
+              {dayTasks.length > 2 && <div className="cal-more">+{dayTasks.length - 2} til</div>}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function FeatherLogo() {
   return (
     <svg width="44" height="52" viewBox="0 0 44 52" fill="none">
@@ -572,6 +651,7 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
           <span className="task-text">{task.text}</span>
           {subs.length > 0 && <span className="sub-count">{subDone}/{subs.length}</span>}
           {docs.length > 0 && <span className="sub-count">{docs.length} dok.</span>}
+          <DueBadge dueDate={task.due_date} />
         </div>
         <PrioritySelect value={task.priority} onChange={changePriority} />
         <Tag cat={task.category} />
@@ -583,12 +663,25 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
 
       {expanded && (
         <div className={`task-expanded${expandedFull ? ' task-fullscreen' : ''}`}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div className="exp-section-label" style={{ marginBottom: 0 }}>Underpunkter</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <div className="due-date-row">
+              <span className="exp-section-label" style={{ marginBottom: 0 }}>Frist</span>
+              <input
+                type="date"
+                className="date-input"
+                value={task.due_date || ''}
+                onChange={async (e) => {
+                  await supabase.from('tasks').update({ due_date: e.target.value || null }).eq('id', task.id)
+                  onUpdate()
+                }}
+              />
+              {task.due_date && <DueBadge dueDate={task.due_date} />}
+            </div>
             <button className="expand-btn" onClick={() => setExpandedFull(v => !v)} title={expandedFull ? 'Minimer' : 'Utvid'}>
               {expandedFull ? '⊖' : '⊕'}
             </button>
           </div>
+          <div className="exp-section-label">Underpunkter</div>
           {subs.length === 0 && <div className="empty-hint">Ingen underpunkter ennå.</div>}
           {subs.map(s => (
             <div key={s.id} className={`sub-item${s.done ? ' done' : ''}`}>
@@ -753,7 +846,10 @@ export default function App() {
   const [newText, setNewText] = useState('')
   const [newCat, setNewCat] = useState('annet')
   const [newPri, setNewPri] = useState('medium')
+  const [newDue, setNewDue] = useState('')
   const [dragId, setDragId] = useState(null)
+  const [view, setView] = useState('list')
+  const [reminders, setReminders] = useState([])
   const [teamEmails, setTeamEmails] = useState([])
   const [unreadMentions, setUnreadMentions] = useState(0)
 
@@ -823,8 +919,9 @@ export default function App() {
 
   async function addTask() {
     if (!newText.trim()) return
-    await supabase.from('tasks').insert({ text: newText.trim(), category: newCat, priority: newPri, position: tasks.length })
+    await supabase.from('tasks').insert({ text: newText.trim(), category: newCat, priority: newPri, due_date: newDue || null, position: tasks.length })
     setNewText('')
+    setNewDue('')
     fetchTasks()
   }
 
@@ -845,6 +942,38 @@ export default function App() {
     setDragId(null)
     fetchTasks()
   }
+
+  useEffect(() => {
+    const today = new Date()
+    today.setHours(0,0,0,0)
+    const upcoming = tasks.filter(t => {
+      if (!t.due_date || t.done) return false
+      const due = new Date(t.due_date)
+      due.setHours(0,0,0,0)
+      const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24))
+      return diff <= 1
+    })
+    setReminders(upcoming)
+
+    // Send e-post påminnelse for oppgaver som forfaller i dag (maks én gang per økt)
+    if (session?.user?.email && upcoming.length > 0) {
+      const reminderKey = `reminder_sent_${today.toISOString().slice(0,10)}`
+      if (!sessionStorage.getItem(reminderKey)) {
+        const dueTodayNames = upcoming.map(t => `• ${t.text} (${getDueStatus(t.due_date)?.label})`).join('\n')
+        fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: session.user.email,
+            fromName: 'Tre musketerer',
+            taskName: 'Påminnelse',
+            comment: `Du har ${upcoming.length} oppgave(r) som haster:\n${dueTodayNames}`
+          })
+        }).catch(() => {})
+        sessionStorage.setItem(reminderKey, 'true')
+      }
+    }
+  }, [tasks, session])
 
   const total = tasks.length
   const done = tasks.filter(t => t.done).length
@@ -877,6 +1006,17 @@ export default function App() {
 
       <div className="app-content">
 
+      {reminders.length > 0 && (
+        <div className="reminder-banner">
+          <span>⏰ {reminders.length} oppgave(r) som haster:</span>
+          {reminders.map(t => (
+            <div key={t.id} className="reminder-item">
+              {PRI_CONFIG[t.priority]?.symbol} {t.text} — <DueBadge dueDate={t.due_date} />
+            </div>
+          ))}
+        </div>
+      )}
+
       {showInvite && <InvitePanel onClose={() => setShowInvite(false)} />}
 
       <div className="stats-row">
@@ -889,6 +1029,11 @@ export default function App() {
       </div>
 
       <div className="progress-bar"><div className="progress-fill" style={{ width: pct + '%' }} /></div>
+
+      <div className="view-tabs">
+        <button className={`view-tab${view === 'list' ? ' active' : ''}`} onClick={() => setView('list')}>📋 Liste</button>
+        <button className={`view-tab${view === 'calendar' ? ' active' : ''}`} onClick={() => setView('calendar')}>📅 Kalender</button>
+      </div>
 
       <div className="add-row">
         <input
@@ -910,10 +1055,16 @@ export default function App() {
             {PRIORITIES.map(p => <option key={p} value={p}>{PRI_CONFIG[p].symbol} {PRI_CONFIG[p].label}</option>)}
           </select>
         </div>
+        <div className="select-wrapper">
+          <label className="select-label">Frist</label>
+          <input type="date" className="date-input" value={newDue} onChange={e => setNewDue(e.target.value)} />
+        </div>
         <button className="add-btn" onClick={addTask}>+ Legg til</button>
       </div>
 
-      {loading ? (
+      {view === 'calendar' && <CalendarView tasks={tasks} />}
+
+      {view === 'list' && (loading ? (
         <div className="loading">Henter oppgaver...</div>
       ) : (
         CATS.map(cat => {
@@ -939,7 +1090,7 @@ export default function App() {
             </div>
           )
         })
-      )}
+      ))}
 
       <div style={{textAlign: 'center', marginTop: '1.5rem', marginBottom: '0.5rem'}}>
         <svg width="180" height="190" viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg">
