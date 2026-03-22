@@ -269,7 +269,7 @@ function PrioritySelect({ value, onChange }) {
   )
 }
 
-function CommentSection({ taskId, userEmail, teamEmails }) {
+function CommentSection({ taskId, taskName, userEmail, teamEmails }) {
   const [comments, setComments] = useState([])
   const [input, setInput] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -317,6 +317,19 @@ function CommentSection({ taskId, userEmail, teamEmails }) {
       mentions: mentioned,
       read_by: [userEmail]
     })
+    // Send e-postvarsling til nevnte personer
+    for (const email of mentioned) {
+      fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: email,
+          fromName: userEmail.split('@')[0],
+          taskName: taskName,
+          comment: input.trim()
+        })
+      }).catch(() => {})
+    }
     setInput('')
     const { data } = await supabase.from('comments').select('*').eq('task_id', taskId).order('created_at')
     setComments(data || [])
@@ -565,7 +578,7 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
             }}>{uploadStatus}</div>
           )}
 
-          <CommentSection taskId={task.id} userEmail={userEmail} teamEmails={teamEmails} />
+          <CommentSection taskId={task.id} taskName={task.text} userEmail={userEmail} teamEmails={teamEmails} />
         </div>
       )}
 
