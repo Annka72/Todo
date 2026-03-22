@@ -904,6 +904,26 @@ h1 {
   gap: 6px;
 }
 
+/* Assign */
+.assign-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+.assign-item input[type="checkbox"] {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.assigned-badge {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* Footer */
 .app-footer {
   border-top: 0.5px solid rgba(0,0,0,0.07);

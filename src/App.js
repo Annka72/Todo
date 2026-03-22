@@ -46,6 +46,8 @@ function MicButton({ onResult, autoSend, className }) {
   )
 }
 
+const ADMIN_EMAIL = 'akjohansen@dynamiskhelse.no'
+
 const CATS = ['investor', 'produkt', 'drift', 'marked', 'annet']
 const CAT_LABELS = { investor: 'Investor', produkt: 'Produkt', drift: 'Drift', marked: 'Marked', annet: 'Annet' }
 const CAT_COLORS = {
@@ -511,7 +513,40 @@ function CommentSection({ taskId, taskName, userEmail, teamEmails }) {
   )
 }
 
-function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, isDragging, userEmail, teamEmails }) {
+function AssignPanel({ task, teamEmails, onUpdate }) {
+  const assigned = task.assigned_to || []
+  const isAdmin = true // Only rendered for admin
+
+  async function toggleAssign(email) {
+    const newAssigned = assigned.includes(email)
+      ? assigned.filter(e => e !== email)
+      : [...assigned, email]
+    await supabase.from('tasks').update({ assigned_to: newAssigned }).eq('id', task.id)
+    onUpdate()
+  }
+
+  return (
+    <div style={{ marginTop: 14 }}>
+      <div className="exp-section-label">Tildelt til</div>
+      {teamEmails.length === 0 && <div className="empty-hint">Ingen teammedlemmer ennå. Inviter noen først.</div>}
+      {teamEmails.filter(e => e !== ADMIN_EMAIL).map(email => (
+        <label key={email} className="assign-item">
+          <input
+            type="checkbox"
+            checked={assigned.includes(email)}
+            onChange={() => toggleAssign(email)}
+          />
+          <span>{email}</span>
+        </label>
+      ))}
+      {assigned.length === 0 && teamEmails.length > 0 && (
+        <div className="empty-hint">Kun synlig for deg (admin).</div>
+      )}
+    </div>
+  )
+}
+
+function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, isDragging, userEmail, teamEmails, isAdmin }) {
   const [expanded, setExpanded] = useState(false)
   const [expandedFull, setExpandedFull] = useState(false)
   const [subInput, setSubInput] = useState('')
@@ -652,6 +687,9 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
           {subs.length > 0 && <span className="sub-count">{subDone}/{subs.length}</span>}
           {docs.length > 0 && <span className="sub-count">{docs.length} dok.</span>}
           <DueBadge dueDate={task.due_date} />
+          {task.assigned_to?.length > 0 && (
+            <span className="assigned-badge">👤 {task.assigned_to.map(e => e.split('@')[0]).join(', ')}</span>
+          )}
         </div>
         <PrioritySelect value={task.priority} onChange={changePriority} />
         <Tag cat={task.category} />
@@ -733,6 +771,15 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
               marginTop: 6,
               fontWeight: 500
             }}>{uploadStatus}</div>
+          )}
+
+          {isAdmin && <AssignPanel task={task} teamEmails={teamEmails} onUpdate={onUpdate} />}
+
+          {!isAdmin && task.assigned_to?.length > 0 && (
+            <div style={{ marginTop: 14 }}>
+              <div className="exp-section-label">Tildelt til</div>
+              <div style={{ fontSize: 12, color: '#8B7355' }}>{task.assigned_to.map(e => e.split('@')[0]).join(', ')}</div>
+            </div>
           )}
 
           <CommentSection taskId={task.id} taskName={task.text} userEmail={userEmail} teamEmails={teamEmails} />
@@ -866,15 +913,19 @@ export default function App() {
 
   useEffect(() => {
     async function loadTeam() {
-      const { data } = await supabase.from('comments').select('user_email')
-      const emails = [...new Set((data || []).map(c => c.user_email))]
+      // Hent alle unike e-poster fra kommentarer og oppgave-tildelinger
+      const { data: commentData } = await supabase.from('comments').select('user_email')
+      const { data: taskData } = await supabase.from('tasks').select('assigned_to')
+      const fromComments = (commentData || []).map(c => c.user_email)
+      const fromTasks = (taskData || []).flatMap(t => t.assigned_to || [])
+      const emails = [...new Set([...fromComments, ...fromTasks])]
       if (session?.user?.email && !emails.includes(session.user.email)) {
         emails.push(session.user.email)
       }
       setTeamEmails(emails)
     }
     if (session) loadTeam()
-  }, [session])
+  }, [session, tasks])
 
   useEffect(() => {
     async function checkMentions() {
@@ -975,14 +1026,19 @@ export default function App() {
     }
   }, [tasks, session])
 
-  const total = tasks.length
-  const done = tasks.filter(t => t.done).length
-  const pct = total ? Math.round(done / total * 100) : 0
-
   if (authLoading) return <div className="loading" style={{ marginTop: '40vh' }}>Laster...</div>
   if (!session) return <LoginScreen />
 
   const userEmail = session.user.email
+  const isAdmin = userEmail === ADMIN_EMAIL
+
+  // Filtrer oppgaver: admin ser alt, andre ser bare sine tildelte
+  const visibleTasks = isAdmin ? tasks : tasks.filter(t =>
+    t.assigned_to?.includes(userEmail)
+  )
+  const total = visibleTasks.length
+  const done = visibleTasks.filter(t => t.done).length
+  const pct = total ? Math.round(done / total * 100) : 0
 
   return (
     <div className="app">
@@ -996,7 +1052,7 @@ export default function App() {
         <div className="header-right">
           <div className="user-info">
             <span className="user-email">{userEmail}</span>
-            <button className="icon-btn" onClick={() => setShowInvite(v => !v)}>+ Inviter</button>
+            {isAdmin && <button className="icon-btn" onClick={() => setShowInvite(v => !v)}>+ Inviter</button>}
             <button className="icon-btn" onClick={() => supabase.auth.signOut()}>Logg ut</button>
           </div>
           <div className="live-badge">● Live</div>
@@ -1035,7 +1091,7 @@ export default function App() {
         <button className={`view-tab${view === 'calendar' ? ' active' : ''}`} onClick={() => setView('calendar')}>📅 Kalender</button>
       </div>
 
-      <div className="add-row">
+      {isAdmin && <div className="add-row">
         <input
           value={newText}
           onChange={e => setNewText(e.target.value)}
@@ -1060,15 +1116,15 @@ export default function App() {
           <input type="date" className="date-input" value={newDue} onChange={e => setNewDue(e.target.value)} />
         </div>
         <button className="add-btn" onClick={addTask}>+ Legg til</button>
-      </div>
+      </div>}
 
-      {view === 'calendar' && <CalendarView tasks={tasks} />}
+      {view === 'calendar' && <CalendarView tasks={visibleTasks} />}
 
       {view === 'list' && (loading ? (
         <div className="loading">Henter oppgaver...</div>
       ) : (
         CATS.map(cat => {
-          const catTasks = tasks.filter(t => t.category === cat)
+          const catTasks = visibleTasks.filter(t => t.category === cat)
           if (!catTasks.length) return null
           return (
             <div key={cat} className="section">
@@ -1085,6 +1141,7 @@ export default function App() {
                   onDrop={e => { e.preventDefault(); handleDrop(dragId, t.id) }}
                   userEmail={userEmail}
                   teamEmails={teamEmails}
+                  isAdmin={isAdmin}
                 />
               ))}
             </div>
