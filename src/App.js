@@ -128,6 +128,7 @@ function ClaudePanel({ task, onClose }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [historyLoaded, setHistoryLoaded] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const messagesRef = useRef([])
 
   const docs = task.documents || []
@@ -206,10 +207,15 @@ function ClaudePanel({ task, onClose }) {
   }
 
   return (
-    <div className="claude-panel">
+    <div className={`claude-panel${expanded ? ' claude-fullscreen' : ''}`}>
       <div className="claude-header">
         <span>Sparre med Claude</span>
-        <button className="close-btn" onClick={onClose}>✕</button>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button className="expand-btn" onClick={() => setExpanded(v => !v)} title={expanded ? 'Minimer' : 'Utvid'}>
+            {expanded ? '⊖' : '⊕'}
+          </button>
+          <button className="close-btn" onClick={() => { setExpanded(false); onClose() }}>✕</button>
+        </div>
       </div>
       <div className="claude-task-label">{task.text}</div>
       {!historyLoaded && <div style={{ padding: '12px 13px', fontSize: 12, color: '#6D5D4E' }}>Henter chat-historikk...</div>}
@@ -376,6 +382,7 @@ function CommentSection({ taskId, taskName, userEmail, teamEmails }) {
 
 function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, isDragging, userEmail, teamEmails }) {
   const [expanded, setExpanded] = useState(false)
+  const [expandedFull, setExpandedFull] = useState(false)
   const [subInput, setSubInput] = useState('')
   const [showClaude, setShowClaude] = useState(false)
 
@@ -523,8 +530,13 @@ function TaskCard({ task, onUpdate, onDelete, onDragStart, onDragOver, onDrop, i
       </div>
 
       {expanded && (
-        <div className="task-expanded">
-          <div className="exp-section-label">Underpunkter</div>
+        <div className={`task-expanded${expandedFull ? ' task-fullscreen' : ''}`}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="exp-section-label" style={{ marginBottom: 0 }}>Underpunkter</div>
+            <button className="expand-btn" onClick={() => setExpandedFull(v => !v)} title={expandedFull ? 'Minimer' : 'Utvid'}>
+              {expandedFull ? '⊖' : '⊕'}
+            </button>
+          </div>
           {subs.length === 0 && <div className="empty-hint">Ingen underpunkter ennå.</div>}
           {subs.map(s => (
             <div key={s.id} className={`sub-item${s.done ? ' done' : ''}`}>

@@ -597,6 +597,55 @@ h1 {
   50% { box-shadow: 0 0 0 6px rgba(200,86,58,0); }
 }
 
+/* Expand/fullscreen */
+.expand-btn {
+  background: transparent;
+  border: 0.5px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--muted);
+  padding: 1px 6px;
+  line-height: 1;
+}
+.expand-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+.claude-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  background: var(--bg);
+  border-radius: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+}
+.claude-fullscreen .claude-messages {
+  max-height: none;
+  flex: 1;
+  overflow-y: auto;
+}
+.claude-fullscreen .msg-content {
+  max-width: 70%;
+}
+
+.task-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  background: var(--bg);
+  border-radius: 0;
+  border: none;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
 /* Comments */
 .comment-item {
   padding: 8px 10px;
